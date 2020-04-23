@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.jar.JarInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -40,24 +41,20 @@ import org.springframework.util.StreamUtils;
  */
 class LoaderZipEntries {
 
-	private final Long entryTime;
-
-	LoaderZipEntries(Long entryTime) {
-		this.entryTime = entryTime;
+	LoaderZipEntries() {
 	}
 
-	WrittenEntries writeTo(ZipArchiveOutputStream out) throws IOException {
+	WrittenEntries writeTo(ZipArchiveOutputStream out, Long entryTime) throws IOException {
 		WrittenEntries written = new WrittenEntries();
-		try (ZipInputStream loaderJar = new ZipInputStream(
-				getClass().getResourceAsStream("/META-INF/loader/spring-boot-loader.jar"))) {
+		try (JarInputStream loaderJar = new JarInputStream(openStream())) {
 			java.util.zip.ZipEntry entry = loaderJar.getNextEntry();
 			while (entry != null) {
 				if (entry.isDirectory() && !entry.getName().equals("META-INF/")) {
-					writeDirectory(new ZipArchiveEntry(entry), out);
+					writeDirectory(new ZipArchiveEntry(entry), entryTime, out);
 					written.addDirectory(entry);
 				}
 				else if (entry.getName().endsWith(".class")) {
-					writeClass(new ZipArchiveEntry(entry), loaderJar, out);
+					writeClass(new ZipArchiveEntry(entry), entryTime, loaderJar, out);
 					written.addFile(entry);
 				}
 				entry = loaderJar.getNextEntry();
@@ -66,22 +63,27 @@ class LoaderZipEntries {
 		return written;
 	}
 
-	private void writeDirectory(ZipArchiveEntry entry, ZipArchiveOutputStream out) throws IOException {
-		prepareEntry(entry, UnixStat.DIR_FLAG | UnixStat.DEFAULT_DIR_PERM);
+	InputStream openStream() {
+		return getClass().getResourceAsStream("/META-INF/loader/spring-boot-loader.jar");
+	}
+
+	private void writeDirectory(ZipArchiveEntry entry, Long entryTime, ZipArchiveOutputStream out) throws IOException {
+		prepareEntry(entry, UnixStat.DIR_FLAG | UnixStat.DEFAULT_DIR_PERM, entryTime);
 		out.putArchiveEntry(entry);
 		out.closeArchiveEntry();
 	}
 
-	private void writeClass(ZipArchiveEntry entry, ZipInputStream in, ZipArchiveOutputStream out) throws IOException {
-		prepareEntry(entry, UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM);
+	private void writeClass(ZipArchiveEntry entry, Long entryTime, ZipInputStream in, ZipArchiveOutputStream out)
+			throws IOException {
+		prepareEntry(entry, UnixStat.FILE_FLAG | UnixStat.DEFAULT_FILE_PERM, entryTime);
 		out.putArchiveEntry(entry);
 		copy(in, out);
 		out.closeArchiveEntry();
 	}
 
-	private void prepareEntry(ZipArchiveEntry entry, int unixMode) {
-		if (this.entryTime != null) {
-			entry.setTime(this.entryTime);
+	private void prepareEntry(ZipArchiveEntry entry, int unixMode, Long entryTime) {
+		if (entryTime != null) {
+			entry.setTime(entryTime);
 		}
 		entry.setUnixMode(unixMode);
 	}

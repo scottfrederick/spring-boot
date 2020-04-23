@@ -110,6 +110,8 @@ class BootJarTests extends AbstractBootArchiveTests<TestBootJar> {
 			assertThat(getLayerNames(index)).containsExactly("dependencies", "spring-boot-loader",
 					"snapshot-dependencies", "application");
 			String layerToolsJar = "BOOT-INF/lib/" + JarModeLibrary.LAYER_TOOLS.getName();
+			ZipEntry layerToolsEntry = jarFile.getEntry(layerToolsJar);
+			assertThat(layerToolsEntry.getTime()).isEqualTo(BootZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES);
 			List<String> expected = new ArrayList<>();
 			expected.add("- \"dependencies\":");
 			expected.add("  - \"BOOT-INF/lib/first-library.jar\"");

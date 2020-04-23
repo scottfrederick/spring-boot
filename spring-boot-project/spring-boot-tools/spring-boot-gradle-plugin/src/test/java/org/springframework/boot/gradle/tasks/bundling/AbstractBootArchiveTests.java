@@ -214,8 +214,12 @@ abstract class AbstractBootArchiveTests<T extends Jar & BootArchive> {
 		executeTask();
 		this.task.getManifest().getAttributes().put("Main-Class", "org.springframework.boot.loader.PropertiesLauncher");
 		try (JarFile jarFile = new JarFile(this.task.getArchiveFile().get().getAsFile())) {
-			assertThat(jarFile.getEntry("org/springframework/boot/loader/LaunchedURLClassLoader.class")).isNotNull();
-			assertThat(jarFile.getEntry("org/springframework/boot/loader/")).isNotNull();
+			ZipEntry classEntry = jarFile.getEntry("org/springframework/boot/loader/LaunchedURLClassLoader.class");
+			assertThat(classEntry).isNotNull();
+			assertThat(classEntry.getTime()).isNotEqualTo(BootZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES);
+			ZipEntry dirEntry = jarFile.getEntry("org/springframework/boot/loader/");
+			assertThat(dirEntry).isNotNull();
+			assertThat(dirEntry.getTime()).isNotEqualTo(BootZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES);
 		}
 	}
 

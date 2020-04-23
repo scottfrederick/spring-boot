@@ -46,6 +46,9 @@ task reproducibleLoaderJar(type: Jar) {
 	preserveFileTimestamps = false
 	archiveFileName = "spring-boot-loader.jar"
 	destinationDirectory = file("${generatedResources}/META-INF/loader")
+	manifest {
+		attributes('Build-Time': archiveFile.get().asFile.lastModified())
+	}
 }
 
 task reproducibleJarModeLayerToolsJar(type: Jar) {
@@ -57,6 +60,9 @@ task reproducibleJarModeLayerToolsJar(type: Jar) {
 	preserveFileTimestamps = false
 	archiveFileName = "spring-boot-jarmode-layertools.jar"
 	destinationDirectory = file("${generatedResources}/META-INF/jarmode")
+	manifest {
+		attributes('Build-Time': archiveFile.get().asFile.lastModified())
+	}
 }
 
 processResources {

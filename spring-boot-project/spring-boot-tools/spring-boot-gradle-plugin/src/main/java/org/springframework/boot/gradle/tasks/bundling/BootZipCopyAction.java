@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.jar.JarInputStream;
 import java.util.stream.Collectors;
 import java.util.zip.CRC32;
 
@@ -311,12 +312,26 @@ class BootZipCopyAction implements CopyAction {
 
 		private void writeJarModeLibrary(String location, JarModeLibrary library) throws IOException {
 			String name = location + library.getName();
+			Long entryTime = (getTime() != null) ? getTime() : getJarBuildTime(library.openStream());
+			writeEntry(name, ZipEntryContentWriter.fromInputStream(library.openStream()), false, (entry) -> {
+				if (entryTime != null) {
+					entry.setTime(entryTime);
+				}
+				prepareStoredEntry(library.openStream(), entry);
+			});
 			writeEntry(name, ZipEntryContentWriter.fromInputStream(library.openStream()), false,
 					(entry) -> prepareStoredEntry(library.openStream(), entry));
 			if (BootZipCopyAction.this.layerResolver != null) {
 				Layer layer = BootZipCopyAction.this.layerResolver.getLayer(library);
 				this.layerIndex.add(layer, name);
 			}
+		}
+
+		private Long getJarBuildTime(InputStream in) throws IOException {
+			JarInputStream jarInputStream = new JarInputStream(in);
+			java.util.jar.Attributes attributes = jarInputStream.getManifest().getMainAttributes();
+			String buildTime = attributes.getValue("Build-Time");
+			return (buildTime != null) ? Long.parseLong(buildTime) : null;
 		}
 
 		private void writeClassPathIndexIfNecessary() throws IOException {
