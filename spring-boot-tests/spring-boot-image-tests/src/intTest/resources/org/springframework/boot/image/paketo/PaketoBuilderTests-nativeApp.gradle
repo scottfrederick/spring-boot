@@ -1,0 +1,35 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '{bootVersion}'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+}
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+	maven { url 'https://repo.spring.io/milestone' }
+	maven { url 'https://repo.spring.io/snapshot' }
+}
+
+dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.experimental:spring-graalvm-native:0.8.5")
+}
+
+bootBuildImage {
+	environment = [
+			"BP_BOOT_NATIVE_IMAGE" : "1",
+			"BP_BOOT_NATIVE_IMAGE_BUILD_ARGUMENTS": "-Dspring.spel.ignore=true -Dspring.native.remove-yaml-support=true"
+	]
+}
+
+bootJar {
+	manifest {
+		attributes(
+				'Implementation-Version': '1.0.0',
+				'Implementation-Title': "Paketo Test"
+		)
+	}
+}
