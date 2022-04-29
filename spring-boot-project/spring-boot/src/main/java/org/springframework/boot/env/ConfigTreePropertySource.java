@@ -16,9 +16,7 @@
 
 package org.springframework.boot.env;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,18 +31,10 @@ import java.util.stream.Stream;
 
 import org.springframework.boot.convert.ApplicationConversionService;
 import org.springframework.boot.origin.Origin;
-import org.springframework.boot.origin.OriginLookup;
-import org.springframework.boot.origin.OriginProvider;
-import org.springframework.boot.origin.TextResourceOrigin;
-import org.springframework.boot.origin.TextResourceOrigin.Location;
-import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.InputStreamSource;
-import org.springframework.core.io.PathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
-import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -69,17 +59,14 @@ import org.springframework.util.StringUtils;
  * mounts.
  *
  * @author Phillip Webb
+ * @author Scott Frederick
  * @since 2.4.0
  */
-public class ConfigTreePropertySource extends EnumerablePropertySource<Path> implements OriginLookup<String> {
-
-	private static final int MAX_DEPTH = 100;
+public class ConfigTreePropertySource extends FileTreePropertySource {
 
 	private final Map<String, PropertyFile> propertyFiles;
 
 	private final String[] names;
-
-	private final Set<Option> options;
 
 	/**
 	 * Create a new {@link ConfigTreePropertySource} instance.
@@ -101,11 +88,10 @@ public class ConfigTreePropertySource extends EnumerablePropertySource<Path> imp
 	}
 
 	private ConfigTreePropertySource(String name, Path sourceDirectory, Set<Option> options) {
-		super(name, sourceDirectory);
+		super(name, sourceDirectory, options);
 		Assert.isTrue(Files.exists(sourceDirectory), () -> "Directory '" + sourceDirectory + "' does not exist");
 		Assert.isTrue(Files.isDirectory(sourceDirectory), () -> "File '" + sourceDirectory + "' is not a directory");
-		this.propertyFiles = PropertyFile.findAll(sourceDirectory, options);
-		this.options = options;
+		this.propertyFiles = PropertyFiles.findAll(sourceDirectory, options);
 		this.names = StringUtils.toStringArray(this.propertyFiles.keySet());
 	}
 
@@ -126,96 +112,23 @@ public class ConfigTreePropertySource extends EnumerablePropertySource<Path> imp
 		return (propertyFile != null) ? propertyFile.getOrigin() : null;
 	}
 
-	@Override
-	public boolean isImmutable() {
-		return !this.options.contains(Option.ALWAYS_READ);
-	}
+	protected static final class PropertyFiles {
 
-	/**
-	 * Property source options.
-	 */
-	public enum Option {
-
-		/**
-		 * Always read the value of the file when accessing the property value. When this
-		 * option is not set the property source will cache the value when it's first
-		 * read.
-		 */
-		ALWAYS_READ,
-
-		/**
-		 * Convert file and directory names to lowercase.
-		 */
-		USE_LOWERCASE_NAMES,
-
-		/**
-		 * Automatically attempt trim trailing new-line characters.
-		 */
-		AUTO_TRIM_TRAILING_NEW_LINE
-
-	}
-
-	/**
-	 * A value returned from the property source which exposes the contents of the
-	 * property file. Values can either be treated as {@link CharSequence} or as an
-	 * {@link InputStreamSource}.
-	 */
-	public interface Value extends CharSequence, InputStreamSource {
-
-	}
-
-	/**
-	 * A single property file that was found when the source was created.
-	 */
-	private static final class PropertyFile {
-
-		private static final Location START_OF_FILE = new Location(0, 0);
-
-		private final Path path;
-
-		private final PathResource resource;
-
-		private final Origin origin;
-
-		private final PropertyFileContent cachedContent;
-
-		private final boolean autoTrimTrailingNewLine;
-
-		private PropertyFile(Path path, Set<Option> options) {
-			this.path = path;
-			this.resource = new PathResource(path);
-			this.origin = new TextResourceOrigin(this.resource, START_OF_FILE);
-			this.autoTrimTrailingNewLine = options.contains(Option.AUTO_TRIM_TRAILING_NEW_LINE);
-			this.cachedContent = options.contains(Option.ALWAYS_READ) ? null
-					: new PropertyFileContent(path, this.resource, this.origin, true, this.autoTrimTrailingNewLine);
-		}
-
-		PropertyFileContent getContent() {
-			if (this.cachedContent != null) {
-				return this.cachedContent;
-			}
-			return new PropertyFileContent(this.path, this.resource, this.origin, false, this.autoTrimTrailingNewLine);
-		}
-
-		Origin getOrigin() {
-			return this.origin;
-		}
+		private static final int MAX_DEPTH = 100;
 
 		static Map<String, PropertyFile> findAll(Path sourceDirectory, Set<Option> options) {
-			try {
-				Map<String, PropertyFile> propertyFiles = new TreeMap<>();
-				try (Stream<Path> pathStream = Files.find(sourceDirectory, MAX_DEPTH, PropertyFile::isPropertyFile,
-						FileVisitOption.FOLLOW_LINKS)) {
-					pathStream.forEach((path) -> {
-						String name = getName(sourceDirectory.relativize(path));
-						if (StringUtils.hasText(name)) {
-							if (options.contains(Option.USE_LOWERCASE_NAMES)) {
-								name = name.toLowerCase();
-							}
-							propertyFiles.put(name, new PropertyFile(path, options));
+			Map<String, PropertyFile> propertyFiles = new TreeMap<>();
+			try (Stream<Path> files = Files.find(sourceDirectory, MAX_DEPTH, PropertyFiles::isPropertyFile,
+					FileVisitOption.FOLLOW_LINKS)) {
+				files.forEach((path) -> {
+					String name = getName(sourceDirectory.relativize(path));
+					if (StringUtils.hasText(name)) {
+						if (options.contains(Option.USE_LOWERCASE_NAMES)) {
+							name = name.toLowerCase();
 						}
-					});
-				}
+						propertyFiles.put(name, new PropertyFile(path, options));
+					}
+				});
 				return Collections.unmodifiableMap(propertyFiles);
 			}
 			catch (IOException ex) {
@@ -228,8 +141,8 @@ public class ConfigTreePropertySource extends EnumerablePropertySource<Path> imp
 		}
 
 		private static boolean hasHiddenPathElement(Path path) {
-			for (Path element : path) {
-				if (element.toString().startsWith("..")) {
+			for (Path value : path) {
+				if (value.toString().startsWith("..")) {
 					return true;
 				}
 			}
@@ -247,115 +160,6 @@ public class ConfigTreePropertySource extends EnumerablePropertySource<Path> imp
 				name.append(relativePath.getName(i));
 			}
 			return name.toString();
-		}
-
-	}
-
-	/**
-	 * The contents of a found property file.
-	 */
-	private static final class PropertyFileContent implements Value, OriginProvider {
-
-		private final Path path;
-
-		private final Resource resource;
-
-		private final Origin origin;
-
-		private final boolean cacheContent;
-
-		private final boolean autoTrimTrailingNewLine;
-
-		private volatile byte[] content;
-
-		private PropertyFileContent(Path path, Resource resource, Origin origin, boolean cacheContent,
-				boolean autoTrimTrailingNewLine) {
-			this.path = path;
-			this.resource = resource;
-			this.origin = origin;
-			this.cacheContent = cacheContent;
-			this.autoTrimTrailingNewLine = autoTrimTrailingNewLine;
-		}
-
-		@Override
-		public Origin getOrigin() {
-			return this.origin;
-		}
-
-		@Override
-		public int length() {
-			return toString().length();
-		}
-
-		@Override
-		public char charAt(int index) {
-			return toString().charAt(index);
-		}
-
-		@Override
-		public CharSequence subSequence(int start, int end) {
-			return toString().subSequence(start, end);
-		}
-
-		@Override
-		public String toString() {
-			String string = new String(getBytes());
-			if (this.autoTrimTrailingNewLine) {
-				string = autoTrimTrailingNewLine(string);
-			}
-			return string;
-		}
-
-		private String autoTrimTrailingNewLine(String string) {
-			if (!string.endsWith("\n")) {
-				return string;
-			}
-			int numberOfLines = 0;
-			for (int i = 0; i < string.length(); i++) {
-				char ch = string.charAt(i);
-				if (ch == '\n') {
-					numberOfLines++;
-				}
-			}
-			if (numberOfLines > 1) {
-				return string;
-			}
-			return (string.endsWith("\r\n")) ? string.substring(0, string.length() - 2)
-					: string.substring(0, string.length() - 1);
-		}
-
-		@Override
-		public InputStream getInputStream() throws IOException {
-			if (!this.cacheContent) {
-				assertStillExists();
-				return this.resource.getInputStream();
-			}
-			return new ByteArrayInputStream(getBytes());
-		}
-
-		private byte[] getBytes() {
-			try {
-				if (!this.cacheContent) {
-					assertStillExists();
-					return FileCopyUtils.copyToByteArray(this.resource.getInputStream());
-				}
-				if (this.content == null) {
-					assertStillExists();
-					synchronized (this.resource) {
-						if (this.content == null) {
-							this.content = FileCopyUtils.copyToByteArray(this.resource.getInputStream());
-						}
-					}
-				}
-				return this.content;
-			}
-			catch (IOException ex) {
-				throw new IllegalStateException(ex);
-			}
-		}
-
-		private void assertStillExists() {
-			Assert.state(Files.exists(this.path), () -> "The property file '" + this.path + "' no longer exists");
 		}
 
 	}

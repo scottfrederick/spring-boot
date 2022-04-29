@@ -20,25 +20,25 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 
-import org.springframework.boot.env.ConfigTreePropertySource;
 import org.springframework.boot.env.FileTreePropertySource.Option;
+import org.springframework.boot.env.ServiceBindingPropertySource;
 
 /**
- * {@link ConfigDataLoader} for config tree locations.
+ * {@link ConfigDataLoader} for service bindings.
  *
- * @author Madhura Bhave
- * @author Phillip Webb
- * @since 2.4.0
+ * @author Scott Frederick
+ * @since 3.1.0
  */
-public class ConfigTreeConfigDataLoader implements ConfigDataLoader<ConfigTreeConfigDataResource> {
+public class ServiceBindingConfigDataLoader implements ConfigDataLoader<ServiceBindingConfigDataResource> {
 
 	@Override
-	public ConfigData load(ConfigDataLoaderContext context, ConfigTreeConfigDataResource resource)
+	public ConfigData load(ConfigDataLoaderContext context, ServiceBindingConfigDataResource resource)
 			throws IOException, ConfigDataResourceNotFoundException {
 		Path path = resource.getPath();
 		ConfigDataResourceNotFoundException.throwIfDoesNotExist(resource, path);
-		String name = "Config tree '" + path + "'";
-		ConfigTreePropertySource source = new ConfigTreePropertySource(name, path, Option.AUTO_TRIM_TRAILING_NEW_LINE);
+		String name = "Service bindings '" + path + "'";
+		ServiceBindingPropertySource source = new ServiceBindingPropertySource(name, path,
+				Option.AUTO_TRIM_TRAILING_NEW_LINE, Option.USE_LOWERCASE_NAMES);
 		return new ConfigData(Collections.singletonList(source));
 	}
 

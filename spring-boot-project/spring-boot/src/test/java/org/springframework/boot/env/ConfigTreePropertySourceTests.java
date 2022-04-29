@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import org.springframework.boot.convert.ApplicationConversionService;
-import org.springframework.boot.env.ConfigTreePropertySource.Option;
-import org.springframework.boot.env.ConfigTreePropertySource.Value;
+import org.springframework.boot.env.FileTreePropertySource.Option;
+import org.springframework.boot.env.FileTreePropertySource.Value;
 import org.springframework.boot.origin.TextResourceOrigin;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.support.ConfigurableConversionService;
