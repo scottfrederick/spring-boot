@@ -106,6 +106,7 @@ dependencies {
 	testImplementation("org.testcontainers:neo4j")
 	testImplementation("org.testcontainers:testcontainers")
 	testImplementation("org.thymeleaf:thymeleaf")
+	testImplementation("redis.clients:jedis")
 }
 
 configurations {
