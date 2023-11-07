@@ -40,6 +40,10 @@ class ElasticsearchContainerConnectionDetailsFactory
 
 	private static final int DEFAULT_PORT = 9200;
 
+	public static final String DEFAULT_USERNAME = "elastic";
+
+	public static final String PASSWORD_ENV_KEY = "ELASTIC_PASSWORD";
+
 	@Override
 	protected ElasticsearchConnectionDetails getContainerConnectionDetails(
 			ContainerConnectionSource<ElasticsearchContainer> source) {
@@ -61,7 +65,30 @@ class ElasticsearchContainerConnectionDetailsFactory
 		public List<Node> getNodes() {
 			String host = getContainer().getHost();
 			Integer port = getContainer().getMappedPort(DEFAULT_PORT);
-			return List.of(new Node(host, port, Protocol.HTTP, null, null));
+			Protocol protocol = containerHasSslCerts() ? Protocol.HTTPS : Protocol.HTTP;
+			return List.of(new Node(host, port, protocol, null, null));
+		}
+
+		@Override
+		public String getUsername() {
+			return containerHasSslCerts() ? DEFAULT_USERNAME : null;
+		}
+
+		@Override
+		public String getPassword() {
+			return containerHasSslCerts() ? getContainer().getEnvMap().get(PASSWORD_ENV_KEY) : null;
+		}
+
+		@Override
+		public String getSslBundle() {
+			if (containerHasSslCerts()) {
+				return ElasticsearchContainerSslBundleRegistrar.SSL_BUNDLE_NAME;
+			}
+			return null;
+		}
+
+		private boolean containerHasSslCerts() {
+			return getContainer().caCertAsBytes().isPresent();
 		}
 
 	}

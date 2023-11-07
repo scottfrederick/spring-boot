@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2024 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,13 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnectionAutoConfiguration;
+import org.springframework.boot.testcontainers.service.connection.elasticsearch.ElasticsearchContainerSslBundleRegistrar;
 import org.springframework.boot.testsupport.container.TestImage;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,20 +39,18 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.springframework.boot.test.autoconfigure.AutoConfigurationImportedCondition.importedAutoConfiguration;
 
 /**
- * Sample test for {@link DataElasticsearchTest @DataElasticsearchTest}.
+ * Integration tests for {@link DataElasticsearchTest @DataElasticsearchTest} with
+ * Elasticsearch 8.
  *
- * @author Eddú Meléndez
- * @author Moritz Halbritter
- * @author Andy Wilkinson
- * @author Phillip Webb
+ * @author Scott Frederick
  */
-@DataElasticsearchTest
 @Testcontainers(disabledWithoutDocker = true)
-class DataElasticsearchTestIntegrationTests {
+@DataElasticsearchTest
+class DataElasticsearchTestVersion8IntegrationTests {
 
 	@Container
 	@ServiceConnection
-	static final ElasticsearchContainer elasticsearch = TestImage.ELASTICSEARCH.create();
+	static final ElasticsearchContainer elasticsearch = TestImage.ELASTICSEARCH_8.create();
 
 	@Autowired
 	private ElasticsearchTemplate elasticsearchTemplate;
@@ -83,6 +84,16 @@ class DataElasticsearchTestIntegrationTests {
 	@Test
 	void serviceConnectionAutoConfigurationWasImported() {
 		assertThat(this.applicationContext).has(importedAutoConfiguration(ServiceConnectionAutoConfiguration.class));
+	}
+
+	@TestConfiguration
+	static class ElasticsearchContainerSslBundleConfiguration {
+
+		@Bean
+		ElasticsearchContainerSslBundleRegistrar elasticsearchContainerSslBundleRegistrar() {
+			return new ElasticsearchContainerSslBundleRegistrar(elasticsearch);
+		}
+
 	}
 
 }

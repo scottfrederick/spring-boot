@@ -94,7 +94,7 @@ class ElasticsearchRestClientConfigurations {
 				.toArray(HttpHost[]::new));
 			builder.setHttpClientConfigCallback((httpClientBuilder) -> {
 				builderCustomizers.orderedStream().forEach((customizer) -> customizer.customize(httpClientBuilder));
-				String sslBundleName = this.properties.getRestclient().getSsl().getBundle();
+				String sslBundleName = connectionDetails.getSslBundle();
 				if (StringUtils.hasText(sslBundleName)) {
 					configureSsl(httpClientBuilder, sslBundles.getObject().getBundle(sslBundleName));
 				}
@@ -258,6 +258,11 @@ class ElasticsearchRestClientConfigurations {
 		@Override
 		public String getPathPrefix() {
 			return this.properties.getPathPrefix();
+		}
+
+		@Override
+		public String getSslBundle() {
+			return this.properties.getRestclient().getSsl().getBundle();
 		}
 
 		private Node createNode(String uri) {

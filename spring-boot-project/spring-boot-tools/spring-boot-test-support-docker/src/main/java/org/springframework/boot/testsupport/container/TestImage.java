@@ -82,14 +82,14 @@ public enum TestImage {
 			(container) -> ((CassandraContainer<?>) container).withStartupTimeout(Duration.ofMinutes(10))),
 
 	/**
-	 * A Docker image suitable for running.
+	 * A container image suitable for testing Couchbase.
 	 */
 	COUCHBASE("couchbase/server", "7.1.4", () -> CouchbaseContainer.class,
 			(container) -> ((CouchbaseContainer) container).withStartupAttempts(5)
 				.withStartupTimeout(Duration.ofMinutes(10))),
 
 	/**
-	 * A Docker image suitable for Elasticsearch 7.
+	 * A container image suitable for testing Elasticsearch 7.
 	 */
 	ELASTICSEARCH("docker.elastic.co/elasticsearch/elasticsearch", "7.17.5", () -> ElasticsearchContainer.class,
 			(container) -> ((ElasticsearchContainer) container).withEnv("ES_JAVA_OPTS", "-Xms32m -Xmx512m")
@@ -99,7 +99,10 @@ public enum TestImage {
 	/**
 	 * A container image suitable for testing Elasticsearch 8.
 	 */
-	ELASTICSEARCH_8("elasticsearch", "8.6.1"),
+	ELASTICSEARCH_8("elasticsearch", "8.6.1", () -> ElasticsearchContainer.class,
+			(container) -> ((ElasticsearchContainer) container).withEnv("ES_JAVA_OPTS", "-Xms32m -Xmx512m")
+				.withStartupAttempts(5)
+				.withStartupTimeout(Duration.ofMinutes(10))),
 
 	/**
 	 * A container image suitable for testing Grafana OTel LGTM.
@@ -128,7 +131,7 @@ public enum TestImage {
 	MARIADB("mariadb", "10.10"),
 
 	/**
-	 * A Docker image suitable for MongoDB.
+	 * A container image suitable for testing MongoDB.
 	 */
 	MONGODB("mongo", "5.0.17", () -> MongoDBContainer.class,
 			(container) -> ((MongoDBContainer) container).withStartupAttempts(5)
@@ -322,6 +325,12 @@ public enum TestImage {
 	 */
 	public GenericContainer<?> genericContainer() {
 		return createContainer(GenericContainer.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <C extends Container<?>> C create() {
+		Assert.notNull(this.containerClass, "Container class must not be null");
+		return createContainer((Class<C>) this.containerClass);
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })

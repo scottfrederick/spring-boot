@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2024 the original author or authors.
+ * Copyright 2012-2023 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,28 +24,28 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.boot.testcontainers.service.connection.elasticsearch.ElasticsearchContainerSslBundleRegistrar;
 import org.springframework.boot.testsupport.container.TestImage;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.elasticsearch.client.elc.ReactiveElasticsearchTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Sample tests for {@link DataElasticsearchTest @DataElasticsearchTest} using reactive
- * repositories.
+ * Integration tests for {@link DataElasticsearchTest @DataElasticsearchTest} with
+ * Elasticsearch 8 using reactive repositories.
  *
- * @author Eddú Meléndez
- * @author Moritz Halbritter
- * @author Andy Wilkinson
- * @author Phillip Webb
+ * @author Scott Frederick
  */
-@DataElasticsearchTest
 @Testcontainers(disabledWithoutDocker = true)
-class DataElasticsearchTestReactiveIntegrationTests {
+@DataElasticsearchTest
+class DataElasticsearchTestVersion8ReactiveIntegrationTests {
 
 	@Container
 	@ServiceConnection
-	static final ElasticsearchContainer elasticsearch = TestImage.ELASTICSEARCH.create();
+	static final ElasticsearchContainer elasticsearch = TestImage.ELASTICSEARCH_8.create();
 
 	@Autowired
 	private ReactiveElasticsearchTemplate elasticsearchTemplate;
@@ -61,6 +61,16 @@ class DataElasticsearchTestReactiveIntegrationTests {
 		assertThat(exampleDocument.getId()).isNotNull();
 		assertThat(this.elasticsearchTemplate.exists(exampleDocument.getId(), ExampleDocument.class)
 			.block(Duration.ofSeconds(30))).isTrue();
+	}
+
+	@TestConfiguration
+	static class ElasticsearchContainerSslBundleConfiguration {
+
+		@Bean
+		ElasticsearchContainerSslBundleRegistrar elasticsearchContainerSslBundleRegistrar() {
+			return new ElasticsearchContainerSslBundleRegistrar(elasticsearch);
+		}
+
 	}
 
 }

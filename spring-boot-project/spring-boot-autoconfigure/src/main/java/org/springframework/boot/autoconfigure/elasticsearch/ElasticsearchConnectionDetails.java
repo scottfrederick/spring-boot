@@ -63,6 +63,10 @@ public interface ElasticsearchConnectionDetails extends ConnectionDetails {
 		return null;
 	}
 
+	default String getSslBundle() {
+		return null;
+	}
+
 	/**
 	 * An Elasticsearch node.
 	 *

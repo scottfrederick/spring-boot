@@ -44,7 +44,7 @@ class DataElasticsearchTestPropertiesIntegrationTests {
 
 	@Container
 	@ServiceConnection
-	static final ElasticsearchContainer elasticsearch = TestImage.container(ElasticsearchContainer.class);
+	static final ElasticsearchContainer elasticsearch = TestImage.ELASTICSEARCH.create();
 
 	@Autowired
 	private Environment environment;
