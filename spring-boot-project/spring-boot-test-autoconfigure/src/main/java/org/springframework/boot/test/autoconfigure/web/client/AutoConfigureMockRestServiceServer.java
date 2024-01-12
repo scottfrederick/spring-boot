@@ -25,23 +25,25 @@ import java.lang.annotation.Target;
 
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.properties.PropertyMapping;
+import org.springframework.boot.test.web.client.MockRestServiceServers;
 import org.springframework.boot.test.web.client.MockServerRestClientCustomizer;
 import org.springframework.boot.test.web.client.MockServerRestTemplateCustomizer;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * Annotation that can be applied to a test class to enable and configure
- * auto-configuration of a single {@link MockRestServiceServer}. Only useful when a single
- * call is made to {@link RestTemplateBuilder} or {@link RestClient.Builder}. If multiple
- * {@link org.springframework.web.client.RestTemplate RestTemplates} or
+ * auto-configuration of a {@link MockRestServiceServer}. If a single call is made to a
+ * {@link RestTemplateBuilder} or a {@link RestClient.Builder}, a
+ * {@link MockRestServiceServer} can be injected and used in tests. If multiple
+ * {@link org.springframework.web.client.RestTemplate RestTemplates} and/or
  * {@link org.springframework.web.client.RestClient RestClients} are in use, inject a
- * {@link MockServerRestTemplateCustomizer} and use
- * {@link MockServerRestTemplateCustomizer#getServer(org.springframework.web.client.RestTemplate)
- * getServer(RestTemplate)}, or inject a {@link MockServerRestClientCustomizer} and use
- * {@link MockServerRestClientCustomizer#getServer(org.springframework.web.client.RestClient.Builder)
- * * getServer(RestClient.Builder)}, or bind a {@link MockRestServiceServer} directly.
+ * {@link MockRestServiceServers} and use
+ * {@link MockRestServiceServers#forRestTemplate(RestTemplate)} or
+ * {@link MockRestServiceServers#forRestClient(RestClient.Builder)}, or bind a
+ * {@link MockRestServiceServer} directly.
  *
  * @author Phillip Webb
  * @author Scott Frederick

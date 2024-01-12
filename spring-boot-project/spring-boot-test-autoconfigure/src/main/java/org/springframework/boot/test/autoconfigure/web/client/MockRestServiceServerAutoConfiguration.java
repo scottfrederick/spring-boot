@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.test.web.client.MockRestServiceServers;
 import org.springframework.boot.test.web.client.MockServerRestClientCustomizer;
 import org.springframework.boot.test.web.client.MockServerRestTemplateCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -58,6 +59,12 @@ public class MockRestServiceServerAutoConfiguration {
 	@Bean
 	public MockServerRestClientCustomizer mockServerRestClientCustomizer() {
 		return new MockServerRestClientCustomizer();
+	}
+
+	@Bean
+	public MockRestServiceServers mockRestServiceServers(MockServerRestTemplateCustomizer restTemplateCustomizer,
+			MockServerRestClientCustomizer restClientCustomizer) {
+		return new MockRestServiceServers(restTemplateCustomizer.getServers(), restClientCustomizer.getServers());
 	}
 
 	@Bean
@@ -139,18 +146,18 @@ public class MockRestServiceServerAutoConfiguration {
 			boolean neitherBound = restTemplateExpectationManagers.isEmpty() && restClientExpectationManagers.isEmpty();
 			boolean bothBound = !restTemplateExpectationManagers.isEmpty() && !restClientExpectationManagers.isEmpty();
 			Assert.state(!neitherBound, "Unable to use auto-configured MockRestServiceServer since "
-					+ "a mock server customizer has not been bound to a RestTemplate or RestClient");
+					+ "a mock server has not been bound to a RestTemplate or RestClient");
 			Assert.state(!bothBound, "Unable to use auto-configured MockRestServiceServer since "
-					+ "mock server customizers have been bound to both a RestTemplate and a RestClient");
+					+ "mock servers have been bound to both a RestTemplate and a RestClient");
 			if (!restTemplateExpectationManagers.isEmpty()) {
 				Assert.state(restTemplateExpectationManagers.size() == 1,
 						"Unable to use auto-configured MockRestServiceServer since "
-								+ "MockServerRestTemplateCustomizer has been bound to more than one RestTemplate");
+								+ "mock servers have been bound to more than one RestTemplate");
 				return restTemplateExpectationManagers.values().iterator().next();
 			}
 			Assert.state(restClientExpectationManagers.size() == 1,
 					"Unable to use auto-configured MockRestServiceServer since "
-							+ "MockServerRestClientCustomizer has been bound to more than one RestClient");
+							+ "mock servers have been bound to more than one RestClient");
 			return restClientExpectationManagers.values().iterator().next();
 		}
 

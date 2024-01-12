@@ -19,6 +19,7 @@ package org.springframework.boot.test.autoconfigure.web.client;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.web.client.MockRestServiceServers;
 import org.springframework.boot.test.web.client.MockServerRestClientCustomizer;
 import org.springframework.boot.test.web.client.MockServerRestTemplateCustomizer;
 import org.springframework.http.MediaType;
@@ -51,6 +52,9 @@ class RestClientTestRestTemplateAndRestClientTogetherIntegrationTests {
 	private MockServerRestClientCustomizer clientCustomizer;
 
 	@Autowired
+	private MockRestServiceServers servers;
+
+	@Autowired
 	private MockRestServiceServer server;
 
 	@Test
@@ -69,8 +73,22 @@ class RestClientTestRestTemplateAndRestClientTogetherIntegrationTests {
 	}
 
 	@Test
+	void restTemplateClientRestCallViaMockServers() {
+		this.servers.forRestTemplate().expect(requestTo("/test")).andRespond(withSuccess("hello", MediaType.TEXT_HTML));
+		assertThat(this.restTemplateClient.test()).isEqualTo("hello");
+	}
+
+	@Test
 	void restClientClientRestCallViaCustomizer() {
 		this.clientCustomizer.getServer()
+			.expect(requestTo(uri("/test")))
+			.andRespond(withSuccess("there", MediaType.TEXT_HTML));
+		assertThat(this.restClientClient.test()).isEqualTo("there");
+	}
+
+	@Test
+	void restClientClientRestCallViaServers() {
+		this.servers.forRestClient()
 			.expect(requestTo(uri("/test")))
 			.andRespond(withSuccess("there", MediaType.TEXT_HTML));
 		assertThat(this.restClientClient.test()).isEqualTo("there");
