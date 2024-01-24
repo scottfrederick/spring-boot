@@ -71,6 +71,8 @@ import org.springframework.util.StringUtils;
  */
 public class DockerApi {
 
+	private static final List<String> IGNORED_IMAGE_TAR_ENTRIES = List.of("index.json", "oci-layout", "repositories");
+
 	private static final List<String> FORCE_PARAMS = Collections.unmodifiableList(Arrays.asList("force", "1"));
 
 	static final String API_VERSION = "v1.24";
@@ -301,7 +303,7 @@ public class DockerApi {
 					if (entry.getName().equals("manifest.json")) {
 						manifest = readManifest(tar);
 					}
-					if (entry.getName().endsWith(".tar")) {
+					if (!IGNORED_IMAGE_TAR_ENTRIES.contains(entry.getName())) {
 						layerFiles.put(entry.getName(), copyToTemp(tar));
 					}
 					entry = tar.getNextTarEntry();
