@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -143,7 +144,8 @@ class UndertowWebServerFactoryDelegate {
 		return this.useForwardHeaders;
 	}
 
-	Builder createBuilder(AbstractConfigurableWebServerFactory factory, Supplier<SslBundle> sslBundleSupplier) {
+	Builder createBuilder(AbstractConfigurableWebServerFactory factory, Supplier<SslBundle> sslBundleSupplier,
+			Supplier<Map<String, SslBundle>> serverNameSslBundlesSupplier) {
 		InetAddress address = factory.getAddress();
 		int port = factory.getPort();
 		Builder builder = Undertow.builder();
@@ -165,7 +167,8 @@ class UndertowWebServerFactoryDelegate {
 		}
 		Ssl ssl = factory.getSsl();
 		if (Ssl.isEnabled(ssl)) {
-			new SslBuilderCustomizer(factory.getPort(), address, ssl.getClientAuth(), sslBundleSupplier.get())
+			new SslBuilderCustomizer(factory.getPort(), address, ssl.getClientAuth(), sslBundleSupplier.get(),
+					serverNameSslBundlesSupplier.get())
 				.customize(builder);
 		}
 		else {

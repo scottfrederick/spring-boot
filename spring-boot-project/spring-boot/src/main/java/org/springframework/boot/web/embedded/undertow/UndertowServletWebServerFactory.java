@@ -295,7 +295,7 @@ public class UndertowServletWebServerFactory extends AbstractServletWebServerFac
 
 	@Override
 	public WebServer getWebServer(ServletContextInitializer... initializers) {
-		Builder builder = this.delegate.createBuilder(this, this::getSslBundle);
+		Builder builder = this.delegate.createBuilder(this, this::getSslBundle, this::getServerNameSslBundles);
 		DeploymentManager manager = createManager(initializers);
 		return getUndertowWebServer(builder, manager, getPort());
 	}

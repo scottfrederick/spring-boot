@@ -16,6 +16,9 @@
 
 package org.springframework.boot.web.embedded.netty;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import io.netty.handler.ssl.ClientAuth;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -54,13 +57,17 @@ public class SslServerCustomizer implements NettyServerCustomizer {
 
 	private volatile SslProvider sslProvider;
 
+	private final Map<String, SslProvider> serverNameSslProviders;
+
 	private volatile SslBundle sslBundle;
 
-	public SslServerCustomizer(Http2 http2, Ssl.ClientAuth clientAuth, SslBundle sslBundle) {
+	public SslServerCustomizer(Http2 http2, Ssl.ClientAuth clientAuth, SslBundle sslBundle,
+			Map<String, SslBundle> serverNameSslBundles) {
 		this.http2 = http2;
 		this.clientAuth = Ssl.ClientAuth.map(clientAuth, ClientAuth.NONE, ClientAuth.OPTIONAL, ClientAuth.REQUIRE);
 		this.sslBundle = sslBundle;
 		this.sslProvider = createSslProvider(sslBundle);
+		this.serverNameSslProviders = createServerNameSslProviders(serverNameSslBundles);
 	}
 
 	@Override
@@ -69,14 +76,29 @@ public class SslServerCustomizer implements NettyServerCustomizer {
 	}
 
 	private void applySecurity(SslContextSpec spec) {
-		spec.sslContext(this.sslProvider.getSslContext())
-			.setSniAsyncMappings((domainName, promise) -> promise.setSuccess(this.sslProvider));
+		spec.sslContext(this.sslProvider.getSslContext()).setSniAsyncMappings((domainName, promise) -> {
+			SslProvider provider = (domainName != null) ? this.serverNameSslProviders.get(domainName)
+					: this.sslProvider;
+			return promise.setSuccess(provider);
+		});
 	}
 
-	void updateSslBundle(SslBundle sslBundle) {
+	void updateSslBundle(String hostName, SslBundle sslBundle) {
 		logger.debug("SSL Bundle has been updated, reloading SSL configuration");
-		this.sslBundle = sslBundle;
-		this.sslProvider = createSslProvider(sslBundle);
+		if (hostName == null) {
+			this.sslBundle = sslBundle;
+			this.sslProvider = createSslProvider(sslBundle);
+		}
+		else {
+			this.serverNameSslProviders.put(hostName, createSslProvider(sslBundle));
+		}
+	}
+
+	private Map<String, SslProvider> createServerNameSslProviders(Map<String, SslBundle> serverNameSslBundles) {
+		Map<String, SslProvider> serverNameSslProviders = new HashMap<>();
+		serverNameSslBundles
+			.forEach((hostName, sslBundle) -> serverNameSslProviders.put(hostName, createSslProvider(sslBundle)));
+		return serverNameSslProviders;
 	}
 
 	private SslProvider createSslProvider(SslBundle sslBundle) {

@@ -172,12 +172,20 @@ public class NettyReactiveWebServerFactory extends AbstractReactiveWebServerFact
 	}
 
 	private HttpServer customizeSslConfiguration(HttpServer httpServer) {
-		SslServerCustomizer customizer = new SslServerCustomizer(getHttp2(), getSsl().getClientAuth(), getSslBundle());
-		String bundleName = getSsl().getBundle();
-		if (StringUtils.hasText(bundleName)) {
-			getSslBundles().addBundleUpdateHandler(bundleName, customizer::updateSslBundle);
-		}
+		SslServerCustomizer customizer = new SslServerCustomizer(getHttp2(), getSsl().getClientAuth(), getSslBundle(),
+				getServerNameSslBundles());
+		addBundleUpdateHandler(null, getSsl().getBundle(), customizer);
+		getSsl().getServerNameBundles()
+			.forEach((serverNameSslBundle) -> addBundleUpdateHandler(serverNameSslBundle.serverName(),
+					serverNameSslBundle.bundle(), customizer));
 		return customizer.apply(httpServer);
+	}
+
+	private void addBundleUpdateHandler(String hostName, String bundleName, SslServerCustomizer customizer) {
+		if (StringUtils.hasText(bundleName)) {
+			getSslBundles().addBundleUpdateHandler(bundleName,
+					(sslBundle) -> customizer.updateSslBundle(hostName, sslBundle));
+		}
 	}
 
 	private HttpProtocol[] listProtocols() {
