@@ -3,11 +3,11 @@ api = "0.8"
 
 # Buildpack ID and metadata
 [buildpack]
-id = "spring-boot/test-info"
-version = "0.0.2"
+id = "spring-boot/spring-boot-test-info"
+version = "0.0.3"
 name = "Spring Boot Test Info Buildpack"
 homepage = "https://github.com/spring-projects/spring-boot"
 
 # Stacks that the buildpack will work with
 [[stacks]]
-id = "io.paketo.stacks.tiny"
+id = "io.buildpacks.stacks.jammy.tiny"

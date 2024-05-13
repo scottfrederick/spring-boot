@@ -143,9 +143,8 @@ class BootBuildImageIntegrationTests {
 		writeMainClass();
 		writeLongNameResource();
 		BuildResult result = this.gradleBuild.build("bootBuildImage", "--pullPolicy=IF_NOT_PRESENT",
-				"--imageName=example/test-image-cmd",
-				"--builder=projects.registry.vmware.com/springboot/spring-boot-cnb-builder:0.0.2",
-				"--runImage=projects.registry.vmware.com/springboot/run:tiny-cnb", "--createdDate=2020-07-01T12:34:56Z",
+				"--imageName=example/test-image-cmd", "--builder=ghcr.io/spring-projects/spring-boot-cnb-builder:0.0.3",
+				"--runImage=ghcr.io/spring-projects/run-jammy-tiny", "--createdDate=2020-07-01T12:34:56Z",
 				"--applicationDirectory=/application");
 		assertThat(result.task(":bootBuildImage").getOutcome()).isEqualTo(TaskOutcome.SUCCESS);
 		assertThat(result.getOutput()).contains("example/test-image-cmd");

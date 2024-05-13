@@ -4,7 +4,7 @@ plugins {
 }
 
 bootBuildImage {
-	builder = "projects.registry.vmware.com/springboot/spring-boot-cnb-builder:0.0.2"
+	builder = "ghcr.io/spring-projects/spring-boot-cnb-builder:0.0.3"
 	pullPolicy = "IF_NOT_PRESENT"
 	buildpacks = [ "file://${projectDir}/hello-world.tgz" as String ]
 }

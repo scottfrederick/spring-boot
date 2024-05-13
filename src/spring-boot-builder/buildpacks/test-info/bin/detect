@@ -16,7 +16,7 @@ cat >> "${plan_path}" <<EOL
 # NOTE: The dependency is provided during the 'build' process.
 #
 [[provides]]
-name = "test-info"
+name = "spring-boot-test-info"
 
 # Buildpack requires this dependency
 #
@@ -24,5 +24,5 @@ name = "test-info"
 #       the dependency.
 #
 [[requires]]
-name = "test-info"
+name = "spring-boot-test-info"
 EOL
