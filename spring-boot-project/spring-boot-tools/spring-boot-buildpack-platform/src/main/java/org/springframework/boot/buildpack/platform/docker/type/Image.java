@@ -31,6 +31,7 @@ import org.springframework.boot.buildpack.platform.json.MappedObject;
  * Image details as returned from {@code Docker inspect}.
  *
  * @author Phillip Webb
+ * @author Scott Frederick
  * @since 2.3.0
  */
 public class Image extends MappedObject {
@@ -39,7 +40,11 @@ public class Image extends MappedObject {
 
 	private final ImageConfig config;
 
+	private final String rootFsType;
+
 	private final List<LayerId> layers;
+
+	private final String architecture;
 
 	private final String os;
 
@@ -49,7 +54,9 @@ public class Image extends MappedObject {
 		super(node, MethodHandles.lookup());
 		this.digests = childrenAt("/RepoDigests", JsonNode::asText);
 		this.config = new ImageConfig(getNode().at("/Config"));
+		this.rootFsType = valueAt("/RootFS/Type", String.class);
 		this.layers = extractLayers(valueAt("/RootFS/Layers", String[].class));
+		this.architecture = valueAt("/Architecture", String.class);
 		this.os = valueAt("/Os", String.class);
 		this.created = valueAt("/Created", String.class);
 	}
@@ -78,11 +85,27 @@ public class Image extends MappedObject {
 	}
 
 	/**
+	 * Return the type of the root FS.
+	 * @return the root FS type
+	 */
+	public String getRootFsType() {
+		return this.rootFsType;
+	}
+
+	/**
 	 * Return the layer IDs contained in the image.
 	 * @return the layer IDs.
 	 */
 	public List<LayerId> getLayers() {
 		return this.layers;
+	}
+
+	/**
+	 * Return the architecture of the image.
+	 * @return the image architecture
+	 */
+	public String getArchitecture() {
+		return this.architecture;
 	}
 
 	/**
