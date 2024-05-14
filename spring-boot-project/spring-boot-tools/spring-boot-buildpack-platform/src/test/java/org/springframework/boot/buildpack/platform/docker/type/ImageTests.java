@@ -51,6 +51,12 @@ class ImageTests extends AbstractJsonTests {
 	}
 
 	@Test
+	void getRootFsTypeReturnsRootFsType() throws Exception {
+		Image image = getImage();
+		assertThat(image.getRootFsType()).isEqualTo("layers");
+	}
+
+	@Test
 	void getLayersReturnsImageLayers() throws Exception {
 		Image image = getImage();
 		List<LayerId> layers = image.getLayers();
@@ -59,6 +65,12 @@ class ImageTests extends AbstractJsonTests {
 			.hasToString("sha256:733a8e5ce32984099ef675fce04730f6e2a6dcfdf5bd292fea01a8f936265342");
 		assertThat(layers.get(45))
 			.hasToString("sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef");
+	}
+
+	@Test
+	void getArchitectureReturnsArchitecture() throws Exception {
+		Image image = getImage();
+		assertThat(image.getArchitecture()).isEqualTo("amd64");
 	}
 
 	@Test
