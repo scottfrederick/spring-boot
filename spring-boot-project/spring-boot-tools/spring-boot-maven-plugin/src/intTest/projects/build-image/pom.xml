@@ -23,7 +23,7 @@
 						</goals>
 						<configuration>
 							<image>
-								<builder>ghcr.io/spring-projects/spring-boot-cnb-builder:0.0.3</builder>
+								<builder>ghcr.io/spring-io/spring-boot-test-builder:0.0.1</builder>
 							</image>
 						</configuration>
 					</execution>

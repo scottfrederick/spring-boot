@@ -10,6 +10,6 @@ if (project.hasProperty('applyWarPlugin')) {
 }
 
 bootBuildImage {
-	builder = "ghcr.io/spring-projects/spring-boot-cnb-builder:0.0.3"
+	builder = "ghcr.io/spring-io/spring-boot-test-builder:0.0.1"
 	pullPolicy = PullPolicy.ALWAYS
 }

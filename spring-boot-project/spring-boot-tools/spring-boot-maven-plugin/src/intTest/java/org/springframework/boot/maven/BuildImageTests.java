@@ -245,7 +245,7 @@ class BuildImageTests extends AbstractArchiveIntegrationTests {
 			.goals("package")
 			.systemProperty("spring-boot.build-image.pullPolicy", "IF_NOT_PRESENT")
 			.systemProperty("spring-boot.build-image.imageName", "example.com/test/cmd-property-name:v1")
-			.systemProperty("spring-boot.build-image.builder", "ghcr.io/spring-projects/spring-boot-cnb-builder:0.0.3")
+			.systemProperty("spring-boot.build-image.builder", "ghcr.io/spring-io/spring-boot-test-builder:0.0.1")
 			.systemProperty("spring-boot.build-image.runImage", "ghcr.io/spring-projects/run-jammy-tiny")
 			.systemProperty("spring-boot.build-image.createdDate", "2020-07-01T12:34:56Z")
 			.systemProperty("spring-boot.build-image.applicationDirectory", "/application")
