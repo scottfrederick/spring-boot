@@ -1,7 +1,6 @@
 name: Run Paketo Test
 on:
   workflow_dispatch:
-  push:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 jobs:
@@ -20,4 +19,4 @@ jobs:
         id: run-paketo-test
         shell: bash
         run: |
-          ./gradlew :spring-boot-system-tests:spring-boot-image-tests:systemTest --tests "org.springframework.boot.image.paketo.PaketoBuilderTests.executableJarApp"
+          ./gradlew --no-daemon :spring-boot-system-tests:spring-boot-image-tests:systemTest --tests "org.springframework.boot.image.paketo.PaketoBuilderTests.executableJarApp"
