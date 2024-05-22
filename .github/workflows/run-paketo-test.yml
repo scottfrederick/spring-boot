@@ -1,0 +1,21 @@
+name: Run Paketo Test
+on: workflow_dispatch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  run-system-tests:
+    name: 'Java ${{ matrix.java.version}}'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check Out Code
+        uses: actions/checkout@v4
+      - name: Prepare Gradle Build
+        uses: ./.github/actions/prepare-gradle-build
+        with:
+          java-version: 17
+          java-toolchain: false
+      - name: Run Paketo Test
+        id: run-paketo-test
+        shell: bash
+        run: |
+          ./gradlew :spring-boot-system-tests:spring-boot-image-tests:systemTest --tests "org.springframework.boot.image.paketo.PaketoBuilderTests.executableJarApp"
