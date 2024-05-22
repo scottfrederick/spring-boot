@@ -20,3 +20,6 @@ jobs:
         shell: bash
         run: |
           ./gradlew --no-daemon :spring-boot-system-tests:spring-boot-image-tests:systemTest --tests "org.springframework.boot.image.paketo.PaketoBuilderTests.executableJarApp"
+      - name: Print JVM Thread Dumps When Cancelled
+        uses: ./.github/actions/print-jvm-thread-dumps
+        if: cancelled()
