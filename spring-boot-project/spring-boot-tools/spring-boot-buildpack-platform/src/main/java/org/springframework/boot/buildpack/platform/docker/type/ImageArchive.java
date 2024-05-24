@@ -130,13 +130,17 @@ public class ImageArchive implements TarArchive {
 	}
 
 	private List<LayerId> writeLayers(Layout writer) throws IOException {
+		System.out.println("***** Writing layers");
 		for (int i = 0; i < this.existingLayers.size(); i++) {
+			System.out.println("***** Writing layer " + EMPTY_LAYER_NAME_PREFIX + i);
 			writeEmptyLayer(writer, EMPTY_LAYER_NAME_PREFIX + i);
 		}
 		List<LayerId> writtenLayers = new ArrayList<>();
 		for (Layer layer : this.newLayers) {
+			System.out.println("***** Writing layer " + layer.getId());
 			writtenLayers.add(writeLayer(writer, layer));
 		}
+		System.out.println("***** Done writing layers");
 		return Collections.unmodifiableList(writtenLayers);
 	}
 
