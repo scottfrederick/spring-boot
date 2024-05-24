@@ -216,6 +216,7 @@ abstract class HttpClientTransport implements HttpTransport {
 
 		@Override
 		public void writeTo(OutputStream outputStream) throws IOException {
+			System.out.println("***** In WritableHttpEntity");
 			this.writer.accept(outputStream);
 		}
 

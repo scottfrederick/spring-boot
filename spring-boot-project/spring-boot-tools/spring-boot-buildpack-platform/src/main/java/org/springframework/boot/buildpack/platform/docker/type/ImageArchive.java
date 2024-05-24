@@ -120,6 +120,7 @@ public class ImageArchive implements TarArchive {
 
 	@Override
 	public void writeTo(OutputStream outputStream) throws IOException {
+		System.out.println("In ImageArchive, writing archive");
 		TarArchive.of(this::write).writeTo(outputStream);
 	}
 
@@ -130,17 +131,17 @@ public class ImageArchive implements TarArchive {
 	}
 
 	private List<LayerId> writeLayers(Layout writer) throws IOException {
-		System.out.println("***** Writing layers");
+		System.out.println("***** in ImageArchive, writing layers");
 		for (int i = 0; i < this.existingLayers.size(); i++) {
-			System.out.println("***** Writing layer " + EMPTY_LAYER_NAME_PREFIX + i);
+			System.out.println("***** in ImageArchive, writing layer " + EMPTY_LAYER_NAME_PREFIX + i);
 			writeEmptyLayer(writer, EMPTY_LAYER_NAME_PREFIX + i);
 		}
 		List<LayerId> writtenLayers = new ArrayList<>();
 		for (Layer layer : this.newLayers) {
-			System.out.println("***** Writing layer " + layer.getId());
+			System.out.println("***** in ImageArchive, writing layer " + layer.getId());
 			writtenLayers.add(writeLayer(writer, layer));
 		}
-		System.out.println("***** Done writing layers");
+		System.out.println("***** in ImageArchive, done writing layers");
 		return Collections.unmodifiableList(writtenLayers);
 	}
 

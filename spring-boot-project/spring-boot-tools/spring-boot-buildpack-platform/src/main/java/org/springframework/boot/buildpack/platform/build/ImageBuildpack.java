@@ -146,7 +146,7 @@ final class ImageBuildpack implements Buildpack {
 		void apply(IOConsumer<Layer> layers) throws IOException {
 			for (Path path : this.layerFiles) {
 				layers.accept(Layer.fromTarArchive((out) -> {
-					System.out.println("***** Writing layer from path " + path);
+					System.out.println("***** in ImageBuildpack, writing layer from path " + path);
 					InputStream in = Files.newInputStream(path);
 					StreamUtils.copy(in, out);
 				}));
