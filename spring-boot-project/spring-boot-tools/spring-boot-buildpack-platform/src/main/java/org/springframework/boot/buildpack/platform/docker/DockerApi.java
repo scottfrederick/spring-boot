@@ -236,12 +236,15 @@ public class DockerApi {
 			StreamCaptureUpdateListener streamListener = new StreamCaptureUpdateListener();
 			listener.onStart();
 			try {
+				System.out.println("***** POSTing to " + loadUri);
 				try (Response response = http().post(loadUri, "application/x-tar", archive::writeTo)) {
+					System.out.println("***** Back from POSTing to " + loadUri);
 					jsonStream().get(response.getContent(), LoadImageUpdateEvent.class, (event) -> {
 						streamListener.onUpdate(event);
 						listener.onUpdate(event);
 					});
 				}
+				System.out.println("***** After POSTing to " + loadUri);
 				Assert.state(StringUtils.hasText(streamListener.getCapturedStream()),
 						"Invalid response received when loading image "
 								+ ((archive.getTag() != null) ? "\"" + archive.getTag() + "\"" : ""));

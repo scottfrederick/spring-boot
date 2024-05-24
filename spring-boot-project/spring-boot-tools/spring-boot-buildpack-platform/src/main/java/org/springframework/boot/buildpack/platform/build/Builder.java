@@ -111,6 +111,7 @@ public class Builder {
 		Buildpacks buildpacks = getBuildpacks(request, imageFetcher, builderMetadata, buildpackLayersMetadata);
 		EphemeralBuilder ephemeralBuilder = new EphemeralBuilder(buildOwner, builderImage, request.getName(),
 				builderMetadata, request.getCreator(), request.getEnv(), buildpacks);
+		System.out.println("***** Loading ephemeral builder " + ephemeralBuilder.getName());
 		this.docker.image().load(ephemeralBuilder.getArchive(), UpdateListener.none());
 		try {
 			executeLifecycle(request, ephemeralBuilder);

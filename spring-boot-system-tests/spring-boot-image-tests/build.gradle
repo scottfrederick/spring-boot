@@ -34,6 +34,10 @@ task syncMavenRepository(type: Sync) {
 	into "${buildDir}/system-test-maven-repository"
 }
 
+tasks.withType(Test) {
+	testLogging.showStandardStreams = true
+}
+
 systemTest {
 	dependsOn syncMavenRepository
 	if (project.hasProperty("springBootVersion")) {

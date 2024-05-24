@@ -21,6 +21,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.concurrent.TimeUnit;
 
 import com.sun.jna.Platform;
 import org.apache.hc.client5.http.DnsResolver;
@@ -35,8 +36,10 @@ import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.core5.http.HttpHost;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.io.SocketConfig;
 import org.apache.hc.core5.http.protocol.HttpContext;
 import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 
 import org.springframework.boot.buildpack.platform.docker.configuration.ResolvedDockerHost;
 import org.springframework.boot.buildpack.platform.socket.DomainSocket;
@@ -49,6 +52,8 @@ import org.springframework.boot.buildpack.platform.socket.NamedPipeSocket;
  * @author Scott Frederick
  */
 final class LocalHttpClientTransport extends HttpClientTransport {
+
+	private static final Timeout SOCKET_TIMEOUT = Timeout.of(2, TimeUnit.MINUTES);
 
 	private static final String DOCKER_SCHEME = "docker";
 
@@ -75,6 +80,8 @@ final class LocalHttpClientTransport extends HttpClientTransport {
 
 		LocalConnectionManager(String host) {
 			super(getRegistry(host), null, null, new LocalDnsResolver());
+			SocketConfig socketConfig = SocketConfig.copy(SocketConfig.DEFAULT).setSoTimeout(SOCKET_TIMEOUT).build();
+			setSocketConfig(socketConfig);
 		}
 
 		private static Registry<ConnectionSocketFactory> getRegistry(String host) {

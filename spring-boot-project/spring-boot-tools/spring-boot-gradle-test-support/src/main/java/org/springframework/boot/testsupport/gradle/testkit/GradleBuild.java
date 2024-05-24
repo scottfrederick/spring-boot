@@ -232,7 +232,8 @@ public class GradleBuild {
 		}
 		GradleRunner gradleRunner = GradleRunner.create()
 			.withProjectDir(this.projectDir)
-			.withPluginClasspath(pluginClasspath());
+			.withPluginClasspath(pluginClasspath())
+			.forwardOutput();
 		if (!this.configurationCache) {
 			// See https://github.com/gradle/gradle/issues/14125
 			gradleRunner.withDebug(true);
