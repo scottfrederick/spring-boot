@@ -203,6 +203,7 @@ abstract class HttpClientTransport implements HttpTransport {
 
 		@Override
 		public long getContentLength() {
+			System.out.println("***** In WritableHttpEntity.getContentLength(), contentType=" + this.getContentType());
 			if (this.getContentType() != null && this.getContentType().equals("application/json")) {
 				return calculateStringContentLength();
 			}
@@ -216,7 +217,7 @@ abstract class HttpClientTransport implements HttpTransport {
 
 		@Override
 		public void writeTo(OutputStream outputStream) throws IOException {
-			System.out.println("***** In WritableHttpEntity");
+			System.out.println("***** In WritableHttpEntity.writeTo");
 			this.writer.accept(outputStream);
 		}
 

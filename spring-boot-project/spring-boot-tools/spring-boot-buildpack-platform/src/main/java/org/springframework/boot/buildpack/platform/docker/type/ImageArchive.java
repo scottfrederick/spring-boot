@@ -120,7 +120,7 @@ public class ImageArchive implements TarArchive {
 
 	@Override
 	public void writeTo(OutputStream outputStream) throws IOException {
-		System.out.println("In ImageArchive, writing archive");
+		System.out.println("***** In ImageArchive, writing archive");
 		TarArchive.of(this::write).writeTo(outputStream);
 	}
 
