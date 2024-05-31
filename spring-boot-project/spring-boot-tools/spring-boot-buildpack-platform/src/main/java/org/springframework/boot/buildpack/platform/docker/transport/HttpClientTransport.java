@@ -144,6 +144,7 @@ abstract class HttpClientTransport implements HttpTransport {
 
 	private Response execute(HttpUriRequest request) {
 		try {
+			System.out.println("***** Executing request to " + this.host + " with request: " + request);
 			ClassicHttpResponse response = this.client.executeOpen(this.host, request, null);
 			int statusCode = response.getCode();
 			if (statusCode >= 400 && statusCode <= 500) {
