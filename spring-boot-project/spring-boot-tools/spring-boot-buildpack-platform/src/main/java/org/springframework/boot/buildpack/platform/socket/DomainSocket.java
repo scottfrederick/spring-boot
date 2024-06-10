@@ -85,7 +85,10 @@ public abstract class DomainSocket extends AbstractSocket {
 				return -1;
 			}
 			try {
-				return read(handle.intValue(), buffer, buffer.remaining());
+				System.out.println("***** In read()");
+				int read = read(handle.intValue(), buffer, buffer.remaining());
+				System.out.println("***** Back from read()");
+				return read;
 			}
 			catch (LastErrorException ex) {
 				throw new IOException(ex);
