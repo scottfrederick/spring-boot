@@ -42,8 +42,8 @@ import org.apache.hc.core5.util.TimeValue;
 import org.apache.hc.core5.util.Timeout;
 
 import org.springframework.boot.buildpack.platform.docker.configuration.ResolvedDockerHost;
-import org.springframework.boot.buildpack.platform.socket.DomainSocket;
 import org.springframework.boot.buildpack.platform.socket.NamedPipeSocket;
+import org.springframework.boot.buildpack.platform.socket.UnixSocket;
 
 /**
  * {@link HttpClientTransport} that talks to local Docker.
@@ -128,7 +128,7 @@ final class LocalHttpClientTransport extends HttpClientTransport {
 			if (Platform.isWindows()) {
 				return NamedPipeSocket.get(this.host);
 			}
-			return DomainSocket.get(this.host);
+			return UnixSocket.get(this.host);
 		}
 
 		@Override
