@@ -79,7 +79,7 @@ final class LocalHttpClientTransport extends HttpClientTransport {
 		LocalConnectionManager(String host) {
 			super(getRegistry(host), null, null, new LocalDnsResolver());
 			ConnectionConfig config = ConnectionConfig.copy(ConnectionConfig.DEFAULT)
-				.setValidateAfterInactivity(10, TimeUnit.MINUTES)
+				.setValidateAfterInactivity(TimeValue.NEG_ONE_MILLISECOND)
 				.build();
 			setConnectionConfig(config);
 		}
