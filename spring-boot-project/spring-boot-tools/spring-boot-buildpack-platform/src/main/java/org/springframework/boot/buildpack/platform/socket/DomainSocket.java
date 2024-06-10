@@ -85,7 +85,7 @@ public abstract class DomainSocket extends AbstractSocket {
 				return -1;
 			}
 			try {
-				System.out.println("***** In read()");
+				System.out.println("***** In read(), buffer.remaining()=" + buffer.remaining());
 				int read = read(handle.intValue(), buffer, buffer.remaining());
 				System.out.println("***** Back from read()");
 				return read;
@@ -174,6 +174,7 @@ public abstract class DomainSocket extends AbstractSocket {
 			if (len == 0) {
 				return 0;
 			}
+			System.out.println("***** In DSIS.read(), off=" + off + ", len=" + len);
 			int amountRead = DomainSocket.this.read(ByteBuffer.wrap(b, off, len));
 			return (amountRead > 0) ? amountRead : -1;
 		}
