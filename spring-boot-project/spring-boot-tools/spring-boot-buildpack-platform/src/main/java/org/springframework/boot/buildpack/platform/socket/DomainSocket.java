@@ -61,6 +61,7 @@ public abstract class DomainSocket extends AbstractSocket {
 			this.fileDescriptor = open(path);
 			this.inputStream = new DomainSocketInputStream();
 			this.outputStream = new DomainSocketOutputStream();
+			setSoTimeout(120000);
 		}
 		catch (LastErrorException ex) {
 			throw new IOException(ex);
