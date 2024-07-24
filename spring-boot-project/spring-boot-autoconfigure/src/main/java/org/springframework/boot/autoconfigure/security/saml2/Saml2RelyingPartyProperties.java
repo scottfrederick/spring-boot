@@ -32,6 +32,7 @@ import org.springframework.security.saml2.provider.service.registration.Saml2Mes
  * @author Phillip Webb
  * @author Moritz Halbritter
  * @author Lasse Wulff
+ * @author Scott Frederick
  * @since 2.2.0
  */
 @ConfigurationProperties("spring.security.saml2.relyingparty")
@@ -173,6 +174,12 @@ public class Saml2RelyingPartyProperties {
 				 */
 				private Resource certificateLocation;
 
+				/**
+				 * SSL bundle providing a private key used for signing and a Relying Party
+				 * X509Certificate shared with the identity provider.
+				 */
+				private Bundle bundle;
+
 				public Resource getPrivateKeyLocation() {
 					return this.privateKeyLocation;
 				}
@@ -187,6 +194,14 @@ public class Saml2RelyingPartyProperties {
 
 				public void setCertificateLocation(Resource certificate) {
 					this.certificateLocation = certificate;
+				}
+
+				public Bundle getBundle() {
+					return this.bundle;
+				}
+
+				public void setBundle(Bundle bundle) {
+					this.bundle = bundle;
 				}
 
 			}
@@ -222,6 +237,12 @@ public class Saml2RelyingPartyProperties {
 			 */
 			private Resource certificateLocation;
 
+			/**
+			 * SSL bundle providing a private key used for decrypting and a Relying Party
+			 * X509Certificate shared with the identity provider.
+			 */
+			private Bundle bundle;
+
 			public Resource getPrivateKeyLocation() {
 				return this.privateKeyLocation;
 			}
@@ -236,6 +257,14 @@ public class Saml2RelyingPartyProperties {
 
 			public void setCertificateLocation(Resource certificate) {
 				this.certificateLocation = certificate;
+			}
+
+			public Bundle getBundle() {
+				return this.bundle;
+			}
+
+			public void setBundle(Bundle bundle) {
+				this.bundle = bundle;
 			}
 
 		}
@@ -367,12 +396,26 @@ public class Saml2RelyingPartyProperties {
 				 */
 				private Resource certificate;
 
+				/**
+				 * SSL bundle providing the X.509 certificate used for verification of
+				 * incoming SAML messages.
+				 */
+				private Bundle bundle;
+
 				public Resource getCertificateLocation() {
 					return this.certificate;
 				}
 
 				public void setCertificateLocation(Resource certificate) {
 					this.certificate = certificate;
+				}
+
+				public Bundle getBundle() {
+					return this.bundle;
+				}
+
+				public void setBundle(Bundle bundle) {
+					this.bundle = bundle;
 				}
 
 			}
@@ -425,6 +468,35 @@ public class Saml2RelyingPartyProperties {
 			this.binding = binding;
 		}
 
+	}
+
+	public static class Bundle {
+
+		/**
+		 * Name of the SSL bundle.
+		 */
+		private String name;
+
+		/**
+		 * Alias for the certificate to use from the SSL bundle.
+		 */
+		private String alias;
+
+		public String getName() {
+			return this.name;
+		}
+
+		public void setName(String name) {
+			this.name = name;
+		}
+
+		public String getAlias() {
+			return this.alias;
+		}
+
+		public void setAlias(String alias) {
+			this.alias = alias;
+		}
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2023 the original author or authors.
+ * Copyright 2012-2024 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.ssl.SslAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.assertj.AssertableWebApplicationContext;
@@ -58,13 +59,14 @@ import static org.mockito.Mockito.mock;
  * @author Madhura Bhave
  * @author Moritz Halbritter
  * @author Lasse Lindqvist
+ * @author Scott Frederick
  */
 class Saml2RelyingPartyAutoConfigurationTests {
 
 	private static final String PREFIX = "spring.security.saml2.relyingparty.registration";
 
 	private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner().withConfiguration(
-			AutoConfigurations.of(Saml2RelyingPartyAutoConfiguration.class, SecurityAutoConfiguration.class));
+			AutoConfigurations.of(Saml2RelyingPartyAutoConfiguration.class, SecurityAutoConfiguration.class, SslAutoConfiguration.class));
 
 	@Test
 	void autoConfigurationShouldBeConditionalOnRelyingPartyRegistrationRepositoryClass() {
@@ -91,6 +93,40 @@ class Saml2RelyingPartyAutoConfigurationTests {
 	@Test
 	void relyingPartyRegistrationRepositoryBeanShouldBeCreatedWhenPropertiesPresent() {
 		this.contextRunner.withPropertyValues(getPropertyValues()).run((context) -> {
+			RelyingPartyRegistrationRepository repository = context.getBean(RelyingPartyRegistrationRepository.class);
+			RelyingPartyRegistration registration = repository.findByRegistrationId("foo");
+
+			assertThat(registration.getAssertingPartyDetails().getSingleSignOnServiceLocation())
+				.isEqualTo("https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/SSOService.php");
+			assertThat(registration.getAssertingPartyDetails().getEntityId())
+				.isEqualTo("https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/metadata.php");
+			assertThat(registration.getAssertionConsumerServiceLocation())
+				.isEqualTo("{baseUrl}/login/saml2/foo-entity-id");
+			assertThat(registration.getAssertionConsumerServiceBinding()).isEqualTo(Saml2MessageBinding.REDIRECT);
+			assertThat(registration.getAssertingPartyDetails().getSingleSignOnServiceBinding())
+				.isEqualTo(Saml2MessageBinding.POST);
+			assertThat(registration.getAssertingPartyDetails().getWantAuthnRequestsSigned()).isFalse();
+			assertThat(registration.getSigningX509Credentials()).hasSize(1);
+			assertThat(registration.getDecryptionX509Credentials()).hasSize(1);
+			assertThat(registration.getAssertingPartyDetails().getVerificationX509Credentials()).isNotNull();
+			assertThat(registration.getEntityId()).isEqualTo("{baseUrl}/saml2/foo-entity-id");
+			assertThat(registration.getSingleLogoutServiceLocation())
+				.isEqualTo("https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/SLOService.php");
+			assertThat(registration.getSingleLogoutServiceResponseLocation())
+				.isEqualTo("https://simplesaml-for-spring-saml.cfapps.io/");
+			assertThat(registration.getSingleLogoutServiceBinding()).isEqualTo(Saml2MessageBinding.POST);
+			assertThat(registration.getAssertingPartyDetails().getSingleLogoutServiceLocation())
+				.isEqualTo("https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/SLOService.php");
+			assertThat(registration.getAssertingPartyDetails().getSingleLogoutServiceResponseLocation())
+				.isEqualTo("https://simplesaml-for-spring-saml.cfapps.io/");
+			assertThat(registration.getAssertingPartyDetails().getSingleLogoutServiceBinding())
+				.isEqualTo(Saml2MessageBinding.POST);
+		});
+	}
+
+	@Test
+	void relyingPartyRegistrationRepositoryBeanShouldBeCreatedWhenPropertiesPresentWithSslBundles() {
+		this.contextRunner.withPropertyValues(getPropertyValuesWithSslBundles()).run((context) -> {
 			RelyingPartyRegistrationRepository repository = context.getBean(RelyingPartyRegistrationRepository.class);
 			RelyingPartyRegistration registration = repository.findByRegistrationId("foo");
 
@@ -317,6 +353,32 @@ class Saml2RelyingPartyAutoConfigurationTests {
 				PREFIX + ".foo.assertingparty.singlesignon.sign-request=false",
 				PREFIX + ".foo.assertingparty.entity-id=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/metadata.php",
 				PREFIX + ".foo.assertingparty.verification.credentials[0].certificate-location=classpath:saml/certificate-location",
+				PREFIX + ".foo.asserting-party.singlelogout.url=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/SLOService.php",
+				PREFIX + ".foo.asserting-party.singlelogout.response-url=https://simplesaml-for-spring-saml.cfapps.io/",
+				PREFIX + ".foo.asserting-party.singlelogout.binding=post",
+				PREFIX + ".foo.entity-id={baseUrl}/saml2/foo-entity-id",
+				PREFIX + ".foo.acs.location={baseUrl}/login/saml2/foo-entity-id",
+				PREFIX + ".foo.acs.binding=redirect" };
+	}
+
+	private String[] getPropertyValuesWithSslBundles() {
+		return new String[] { "spring.ssl.bundle.pem.saml.key.alias=key-alias",
+				"spring.ssl.bundle.pem.saml.key.password=secret1",
+				"spring.ssl.bundle.pem.saml.keystore.certificate=classpath:saml/certificate-location",
+				"spring.ssl.bundle.pem.saml.keystore.private-key=classpath:saml/private-key-location",
+				PREFIX + ".foo.signing.credentials[0].bundle.name=saml",
+				PREFIX + ".foo.signing.credentials[0].bundle.alias=key-alias",
+				PREFIX + ".foo.decryption.credentials[0].bundle.name=saml",
+				PREFIX + ".foo.decryption.credentials[0].bundle.alias=key-alias",
+				PREFIX + ".foo.singlelogout.url=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/SLOService.php",
+				PREFIX + ".foo.singlelogout.response-url=https://simplesaml-for-spring-saml.cfapps.io/",
+				PREFIX + ".foo.singlelogout.binding=post",
+				PREFIX + ".foo.assertingparty.singlesignon.url=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/SSOService.php",
+				PREFIX + ".foo.assertingparty.singlesignon.binding=post",
+				PREFIX + ".foo.assertingparty.singlesignon.sign-request=false",
+				PREFIX + ".foo.assertingparty.entity-id=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/metadata.php",
+				PREFIX + ".foo.assertingparty.verification.credentials[0].bundle.name=saml",
+				PREFIX + ".foo.assertingparty.verification.credentials[0].bundle.alias=key-alias",
 				PREFIX + ".foo.asserting-party.singlelogout.url=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/SLOService.php",
 				PREFIX + ".foo.asserting-party.singlelogout.response-url=https://simplesaml-for-spring-saml.cfapps.io/",
 				PREFIX + ".foo.asserting-party.singlelogout.binding=post",
