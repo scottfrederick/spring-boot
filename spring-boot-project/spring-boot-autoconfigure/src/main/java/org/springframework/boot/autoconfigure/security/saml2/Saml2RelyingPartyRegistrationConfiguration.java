@@ -17,11 +17,7 @@
 package org.springframework.boot.autoconfigure.security.saml2;
 
 import java.io.InputStream;
-import java.security.GeneralSecurityException;
-import java.security.Key;
-import java.security.KeyStore;
 import java.security.PrivateKey;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
@@ -34,14 +30,14 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyProperties.AssertingParty;
 import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyProperties.AssertingParty.Verification;
-import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyProperties.Bundle;
 import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyProperties.Decryption;
 import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyProperties.Registration;
 import org.springframework.boot.autoconfigure.security.saml2.Saml2RelyingPartyProperties.Registration.Signing.Credential;
 import org.springframework.boot.context.properties.PropertyMapper;
 import org.springframework.boot.ssl.SslBundle;
-import org.springframework.boot.ssl.SslBundleKey;
+import org.springframework.boot.ssl.SslBundleKeyStore;
 import org.springframework.boot.ssl.SslBundles;
+import org.springframework.boot.ssl.SslStoreBundle;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -163,9 +159,9 @@ class Saml2RelyingPartyRegistrationConfiguration {
 	}
 
 	private Saml2X509Credential asSigningCredential(Credential properties, SslBundles sslBundles) {
-		Bundle sslBundle = properties.getBundle();
+		String sslBundle = properties.getBundle();
 		if (sslBundle != null) {
-			PrivateKey privateKey = getPrivateKey(sslBundle.getName(), sslBundles);
+			PrivateKey privateKey = getPrivateKey(sslBundle, sslBundles);
 			X509Certificate certificate = getCertificate(sslBundle, sslBundles);
 			return new Saml2X509Credential(privateKey, certificate, Saml2X509CredentialType.SIGNING);
 		}
@@ -175,9 +171,9 @@ class Saml2RelyingPartyRegistrationConfiguration {
 	}
 
 	private Saml2X509Credential asDecryptionCredential(Decryption.Credential properties, SslBundles sslBundles) {
-		Bundle sslBundle = properties.getBundle();
+		String sslBundle = properties.getBundle();
 		if (sslBundle != null) {
-			PrivateKey privateKey = getPrivateKey(sslBundle.getName(), sslBundles);
+			PrivateKey privateKey = getPrivateKey(sslBundle, sslBundles);
 			X509Certificate certificate = getCertificate(sslBundle, sslBundles);
 			return new Saml2X509Credential(privateKey, certificate, Saml2X509CredentialType.DECRYPTION);
 		}
@@ -187,7 +183,7 @@ class Saml2RelyingPartyRegistrationConfiguration {
 	}
 
 	private Saml2X509Credential asVerificationCredential(Verification.Credential properties, SslBundles sslBundles) {
-		Bundle sslBundle = properties.getBundle();
+		String sslBundle = properties.getBundle();
 		if (sslBundle != null) {
 			X509Certificate certificate = getCertificate(sslBundle, sslBundles);
 			return new Saml2X509Credential(certificate, Saml2X509Credential.Saml2X509CredentialType.ENCRYPTION,
@@ -221,34 +217,19 @@ class Saml2RelyingPartyRegistrationConfiguration {
 	}
 
 	private PrivateKey getPrivateKey(String sslBundle, SslBundles sslBundles) {
-		try {
-			SslBundle bundle = sslBundles.getBundle(sslBundle);
-			SslBundleKey key = bundle.getKey();
-			KeyStore keyStore = bundle.getStores().getKeyStore();
-			Key privateKey = keyStore.getKey(key.getAlias(), key.getPassword().toCharArray());
-			Assert.notNull(privateKey,
-					"Private key with alias '" + key.getAlias() + "' was not found in SSL bundle '" + sslBundle + "'");
-			Assert.isInstanceOf(PrivateKey.class, privateKey);
-			return (PrivateKey) privateKey;
-		}
-		catch (GeneralSecurityException ex) {
-			throw new IllegalStateException("Error getting private key from SSL bundle '" + sslBundle + "'", ex);
-		}
+		SslBundle bundle = sslBundles.getBundle(sslBundle);
+		SslStoreBundle stores = bundle.getStores();
+		PrivateKey privateKey = SslBundleKeyStore.from(stores.getKeyStore(), bundle.getKey()).getPrivateKey();
+		Assert.notNull(privateKey, "KeyStore in SSL bundle '" + sslBundle + "' must have a private key");
+		return privateKey;
 	}
 
-	private X509Certificate getCertificate(Bundle sslBundle, SslBundles sslBundles) {
-		try {
-			SslBundle bundle = sslBundles.getBundle(sslBundle.getName());
-			KeyStore keyStore = bundle.getStores().getKeyStore();
-			Certificate certificate = keyStore.getCertificate(sslBundle.getAlias());
-			Assert.notNull(certificate, "Certificate with alias '" + sslBundle.getAlias()
-					+ "' was not found in SSL bundle '" + sslBundle + "'");
-			Assert.isInstanceOf(X509Certificate.class, certificate);
-			return (X509Certificate) certificate;
-		}
-		catch (GeneralSecurityException ex) {
-			throw new IllegalStateException("Error getting certificate from SSL bundle '" + sslBundle + "'", ex);
-		}
+	private X509Certificate getCertificate(String sslBundle, SslBundles sslBundles) {
+		SslBundle bundle = sslBundles.getBundle(sslBundle);
+		SslStoreBundle stores = bundle.getStores();
+		X509Certificate certificate = SslBundleKeyStore.from(stores.getKeyStore(), bundle.getKey()).getCertificate();
+		Assert.notNull(certificate, "KeyStore in SSL bundle '" + sslBundle + "' must have a certificate");
+		return certificate;
 	}
 
 }

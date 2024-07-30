@@ -29,7 +29,8 @@ import org.springframework.http.ResponseEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, properties = { "spring.profiles.active=ssl-jks"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+		properties = { "spring.profiles.active=ssl-jks" })
 class SampleSaml2RelyingPartyApplicationJksSslBundleTests {
 
 	@LocalServerPort

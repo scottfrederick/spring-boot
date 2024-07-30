@@ -178,7 +178,7 @@ public class Saml2RelyingPartyProperties {
 				 * SSL bundle providing a private key used for signing and a Relying Party
 				 * X509Certificate shared with the identity provider.
 				 */
-				private Bundle bundle;
+				private String bundle;
 
 				public Resource getPrivateKeyLocation() {
 					return this.privateKeyLocation;
@@ -196,11 +196,11 @@ public class Saml2RelyingPartyProperties {
 					this.certificateLocation = certificate;
 				}
 
-				public Bundle getBundle() {
+				public String getBundle() {
 					return this.bundle;
 				}
 
-				public void setBundle(Bundle bundle) {
+				public void setBundle(String bundle) {
 					this.bundle = bundle;
 				}
 
@@ -241,7 +241,7 @@ public class Saml2RelyingPartyProperties {
 			 * SSL bundle providing a private key used for decrypting and a Relying Party
 			 * X509Certificate shared with the identity provider.
 			 */
-			private Bundle bundle;
+			private String bundle;
 
 			public Resource getPrivateKeyLocation() {
 				return this.privateKeyLocation;
@@ -259,11 +259,11 @@ public class Saml2RelyingPartyProperties {
 				this.certificateLocation = certificate;
 			}
 
-			public Bundle getBundle() {
+			public String getBundle() {
 				return this.bundle;
 			}
 
-			public void setBundle(Bundle bundle) {
+			public void setBundle(String bundle) {
 				this.bundle = bundle;
 			}
 
@@ -400,7 +400,7 @@ public class Saml2RelyingPartyProperties {
 				 * SSL bundle providing the X.509 certificate used for verification of
 				 * incoming SAML messages.
 				 */
-				private Bundle bundle;
+				private String bundle;
 
 				public Resource getCertificateLocation() {
 					return this.certificate;
@@ -410,11 +410,11 @@ public class Saml2RelyingPartyProperties {
 					this.certificate = certificate;
 				}
 
-				public Bundle getBundle() {
+				public String getBundle() {
 					return this.bundle;
 				}
 
-				public void setBundle(Bundle bundle) {
+				public void setBundle(String bundle) {
 					this.bundle = bundle;
 				}
 
@@ -468,35 +468,6 @@ public class Saml2RelyingPartyProperties {
 			this.binding = binding;
 		}
 
-	}
-
-	public static class Bundle {
-
-		/**
-		 * Name of the SSL bundle.
-		 */
-		private String name;
-
-		/**
-		 * Alias for the certificate to use from the SSL bundle.
-		 */
-		private String alias;
-
-		public String getName() {
-			return this.name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public String getAlias() {
-			return this.alias;
-		}
-
-		public void setAlias(String alias) {
-			this.alias = alias;
-		}
 	}
 
 }

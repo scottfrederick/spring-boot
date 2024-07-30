@@ -65,8 +65,9 @@ class Saml2RelyingPartyAutoConfigurationTests {
 
 	private static final String PREFIX = "spring.security.saml2.relyingparty.registration";
 
-	private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner().withConfiguration(
-			AutoConfigurations.of(Saml2RelyingPartyAutoConfiguration.class, SecurityAutoConfiguration.class, SslAutoConfiguration.class));
+	private final WebApplicationContextRunner contextRunner = new WebApplicationContextRunner()
+		.withConfiguration(AutoConfigurations.of(Saml2RelyingPartyAutoConfiguration.class,
+				SecurityAutoConfiguration.class, SslAutoConfiguration.class));
 
 	@Test
 	void autoConfigurationShouldBeConditionalOnRelyingPartyRegistrationRepositoryClass() {
@@ -366,10 +367,8 @@ class Saml2RelyingPartyAutoConfigurationTests {
 				"spring.ssl.bundle.pem.saml.key.password=secret1",
 				"spring.ssl.bundle.pem.saml.keystore.certificate=classpath:saml/certificate-location",
 				"spring.ssl.bundle.pem.saml.keystore.private-key=classpath:saml/private-key-location",
-				PREFIX + ".foo.signing.credentials[0].bundle.name=saml",
-				PREFIX + ".foo.signing.credentials[0].bundle.alias=key-alias",
-				PREFIX + ".foo.decryption.credentials[0].bundle.name=saml",
-				PREFIX + ".foo.decryption.credentials[0].bundle.alias=key-alias",
+				PREFIX + ".foo.signing.credentials[0].bundle=saml",
+				PREFIX + ".foo.decryption.credentials[0].bundle=saml",
 				PREFIX + ".foo.singlelogout.url=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/SLOService.php",
 				PREFIX + ".foo.singlelogout.response-url=https://simplesaml-for-spring-saml.cfapps.io/",
 				PREFIX + ".foo.singlelogout.binding=post",
@@ -377,8 +376,7 @@ class Saml2RelyingPartyAutoConfigurationTests {
 				PREFIX + ".foo.assertingparty.singlesignon.binding=post",
 				PREFIX + ".foo.assertingparty.singlesignon.sign-request=false",
 				PREFIX + ".foo.assertingparty.entity-id=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/metadata.php",
-				PREFIX + ".foo.assertingparty.verification.credentials[0].bundle.name=saml",
-				PREFIX + ".foo.assertingparty.verification.credentials[0].bundle.alias=key-alias",
+				PREFIX + ".foo.assertingparty.verification.credentials[0].bundle=saml",
 				PREFIX + ".foo.asserting-party.singlelogout.url=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/SLOService.php",
 				PREFIX + ".foo.asserting-party.singlelogout.response-url=https://simplesaml-for-spring-saml.cfapps.io/",
 				PREFIX + ".foo.asserting-party.singlelogout.binding=post",
