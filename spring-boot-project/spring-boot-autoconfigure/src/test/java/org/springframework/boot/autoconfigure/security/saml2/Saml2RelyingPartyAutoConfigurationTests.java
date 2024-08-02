@@ -273,6 +273,38 @@ class Saml2RelyingPartyAutoConfigurationTests {
 		}
 	}
 
+	@Test
+	void autoconfigurationWithInvalidPrivateKeyShouldFail() {
+		this.contextRunner.withPropertyValues(
+				PREFIX + ".foo.signing.credentials[0].private-key-location=classpath:saml/certificate-location",
+				PREFIX + ".foo.signing.credentials[0].certificate-location=classpath:saml/certificate-location",
+				PREFIX + ".foo.assertingparty.singlesignon.url=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/SSOService.php",
+				PREFIX + ".foo.assertingparty.singlesignon.binding=post",
+				PREFIX + ".foo.assertingparty.singlesignon.sign-request=false",
+				PREFIX + ".foo.assertingparty.entity-id=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/metadata.php",
+				PREFIX + ".foo.assertingparty.verification.credentials[0].certificate-location=classpath:saml/certificate-location")
+			.run((context) -> assertThat(context).hasFailed()
+				.getFailure()
+				.rootCause()
+				.hasMessageContaining("Missing private key or unrecognized format"));
+	}
+
+	@Test
+	void autoconfigurationWithInvalidCertificateShouldFail() {
+		this.contextRunner.withPropertyValues(
+				PREFIX + ".foo.signing.credentials[0].private-key-location=classpath:saml/private-key-location",
+				PREFIX + ".foo.signing.credentials[0].certificate-location=classpath:saml/private-key-location",
+				PREFIX + ".foo.assertingparty.singlesignon.url=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/SSOService.php",
+				PREFIX + ".foo.assertingparty.singlesignon.binding=post",
+				PREFIX + ".foo.assertingparty.singlesignon.sign-request=false",
+				PREFIX + ".foo.assertingparty.entity-id=https://simplesaml-for-spring-saml.cfapps.io/saml2/idp/metadata.php",
+				PREFIX + ".foo.assertingparty.verification.credentials[0].certificate-location=classpath:saml/certificate-location")
+			.run((context) -> assertThat(context).hasFailed()
+				.getFailure()
+				.rootCause()
+				.hasMessageContaining("Missing certificates or unrecognized format"));
+	}
+
 	private void testMultipleProviders(String specifiedEntityId, String expected) throws Exception {
 		try (MockWebServer server = new MockWebServer()) {
 			server.start();
