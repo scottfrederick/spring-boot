@@ -46,7 +46,7 @@ import org.springframework.util.Assert;
  */
 public class BuildRequest {
 
-	static final String DEFAULT_BUILDER_IMAGE_NAME = "paketobuildpacks/builder-jammy-tiny";
+	static final String DEFAULT_BUILDER_IMAGE_NAME = "paketocommunity/builder-jammy-java-tiny";
 
 	static final String DEFAULT_BUILDER_IMAGE_REF = DEFAULT_BUILDER_IMAGE_NAME + ":latest";
 
@@ -57,6 +57,7 @@ public class BuildRequest {
 			ImageReference.of("paketobuildpacks/builder-jammy-buildpackless-tiny"),
 			ImageReference.of("paketobuildpacks/builder-jammy-buildpackless-base"),
 			ImageReference.of("paketobuildpacks/builder-jammy-buildpackless-full"),
+			ImageReference.of("paketocommunity/builder-jammy-java-tiny"),
 			ImageReference.of("gcr.io/buildpacks/builder"), ImageReference.of("heroku/builder"));
 
 	private static final ImageReference DEFAULT_BUILDER = ImageReference.of(DEFAULT_BUILDER_IMAGE_REF);
