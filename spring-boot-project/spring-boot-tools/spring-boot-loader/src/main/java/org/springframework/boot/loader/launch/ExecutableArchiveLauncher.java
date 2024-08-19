@@ -16,12 +16,10 @@
 
 package org.springframework.boot.loader.launch;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
-import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import org.springframework.boot.loader.launch.Archive.Entry;
@@ -41,10 +39,6 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 
 	private static final String START_CLASS_ATTRIBUTE = "Start-Class";
 
-	protected static final String BOOT_CLASSPATH_INDEX_ATTRIBUTE = "Spring-Boot-Classpath-Index";
-
-	protected static final String DEFAULT_CLASSPATH_INDEX_FILE_NAME = "classpath.idx";
-
 	private final Archive archive;
 
 	private final ClassPathIndexFile classPathIndex;
@@ -56,21 +50,6 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 	protected ExecutableArchiveLauncher(Archive archive) throws Exception {
 		this.archive = archive;
 		this.classPathIndex = getClassPathIndex(this.archive);
-	}
-
-	ClassPathIndexFile getClassPathIndex(Archive archive) throws IOException {
-		if (!archive.isExploded()) {
-			return null; // Regular archives already have a defined order
-		}
-		String location = getClassPathIndexFileLocation(archive);
-		return ClassPathIndexFile.loadIfPossible(archive.getRootDirectory(), location);
-	}
-
-	private String getClassPathIndexFileLocation(Archive archive) throws IOException {
-		Manifest manifest = archive.getManifest();
-		Attributes attributes = (manifest != null) ? manifest.getMainAttributes() : null;
-		String location = (attributes != null) ? attributes.getValue(BOOT_CLASSPATH_INDEX_ATTRIBUTE) : null;
-		return (location != null) ? location : getEntryPathPrefix() + DEFAULT_CLASSPATH_INDEX_FILE_NAME;
 	}
 
 	@Override
@@ -118,19 +97,5 @@ public abstract class ExecutableArchiveLauncher extends Launcher {
 		return ((getEntryPathPrefix() == null) || entry.name().startsWith(getEntryPathPrefix()))
 				&& !isIncludedOnClassPath(entry);
 	}
-
-	/**
-	 * Determine if the specified entry is a nested item that should be added to the
-	 * classpath.
-	 * @param entry the entry to check
-	 * @return {@code true} if the entry is a nested item (jar or directory)
-	 */
-	protected abstract boolean isIncludedOnClassPath(Archive.Entry entry);
-
-	/**
-	 * Return the path prefix for relevant entries in the archive.
-	 * @return the entry path prefix
-	 */
-	protected abstract String getEntryPathPrefix();
 
 }

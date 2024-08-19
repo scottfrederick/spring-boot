@@ -22,7 +22,9 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -61,7 +63,7 @@ import static org.hamcrest.Matchers.containsString;
  */
 @ExtendWith(OutputCaptureExtension.class)
 @AssertFileChannelDataBlocksClosed
-class PropertiesLauncherTests {
+class PropertiesLauncherTests extends AbstractExecutableArchiveLauncherTests {
 
 	@TempDir
 	File tempDir;
@@ -388,11 +390,35 @@ class PropertiesLauncherTests {
 		this.launcher = new PropertiesLauncher(archive);
 		this.launcher.launch(new String[0]);
 		waitFor("Hello World");
+	}
 
+	@Test
+	void explodedJarShouldPreserveClasspathOrderWhenIndexPresent() throws Exception {
+		File explodedRoot = explode(createJarArchive("archive.jar", "BOOT-INF", true, Collections.emptyList()));
+		JarLauncher launcher = new JarLauncher(new ExplodedArchive(explodedRoot));
+		URLClassLoader classLoader = createClassLoader(launcher);
+		assertThat(classLoader.getURLs()).containsExactly(getExpectedFileUrls(explodedRoot));
 	}
 
 	private void waitFor(String value) {
 		Awaitility.waitAtMost(Duration.ofSeconds(5)).until(this.output::toString, containsString(value));
+	}
+
+	private URLClassLoader createClassLoader(JarLauncher launcher) throws Exception {
+		return (URLClassLoader) launcher.createClassLoader(launcher.getClassPathUrls());
+	}
+
+	private URL[] getExpectedFileUrls(File explodedRoot) {
+		return getExpectedFiles(explodedRoot).stream().map(this::toUrl).toArray(URL[]::new);
+	}
+
+	private List<File> getExpectedFiles(File parent) {
+		List<File> expected = new ArrayList<>();
+		expected.add(new File(parent, "BOOT-INF/classes"));
+		expected.add(new File(parent, "BOOT-INF/lib/foo.jar"));
+		expected.add(new File(parent, "BOOT-INF/lib/bar.jar"));
+		expected.add(new File(parent, "BOOT-INF/lib/baz.jar"));
+		return expected;
 	}
 
 	private Condition<URL> endingWith(String value) {

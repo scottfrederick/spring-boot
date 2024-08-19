@@ -139,6 +139,8 @@ public class PropertiesLauncher extends Launcher {
 
 	private final Properties properties = new Properties();
 
+	private final ClassPathIndexFile classPathIndex;
+
 	public PropertiesLauncher() throws Exception {
 		this(Archive.create(Launcher.class));
 	}
@@ -148,6 +150,7 @@ public class PropertiesLauncher extends Launcher {
 		this.homeDirectory = getHomeDirectory();
 		initializeProperties();
 		this.paths = getPaths();
+		this.classPathIndex = getClassPathIndex(this.archive);
 	}
 
 	protected File getHomeDirectory() throws Exception {
@@ -334,6 +337,10 @@ public class PropertiesLauncher extends Launcher {
 			return super.createClassLoader(urls);
 		}
 		ClassLoader parent = getClass().getClassLoader();
+		if (this.classPathIndex != null) {
+			urls = new ArrayList<>(urls);
+			urls.addAll(this.classPathIndex.getUrls());
+		}
 		ClassLoader classLoader = new LaunchedClassLoader(false, urls.toArray(new URL[0]), parent);
 		debug.log("Classpath for custom loader: %s", urls);
 		classLoader = wrapWithCustomClassLoader(classLoader, loaderClassName);
@@ -539,7 +546,7 @@ public class PropertiesLauncher extends Launcher {
 
 	private Set<URL> getClassPathUrlsForRoot() throws IOException {
 		debug.log("Adding classpath entries from root archive %s", this.archive);
-		return this.archive.getClassPathUrls(JarLauncher::isLibraryFileOrClassesDirectory);
+		return this.archive.getClassPathUrls(this::isLibraryFileOrClassesDirectory);
 	}
 
 	private Predicate<Entry> includeByPrefix(String prefix) {
