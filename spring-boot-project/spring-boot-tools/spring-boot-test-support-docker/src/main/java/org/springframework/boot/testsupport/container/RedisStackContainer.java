@@ -24,7 +24,10 @@ import org.testcontainers.utility.DockerImageName;
  *
  * @author Andy Wilkinson
  * @author Madhura Bhave
+ * @deprecated since 3.4.0 for removal in 3.6.0, in favor of
+ * {@link com.redis.testcontainers.RedisStackContainer}
  */
+@Deprecated(since = "3.4.0", forRemoval = true)
 public class RedisStackContainer extends GenericContainer<RedisStackContainer> {
 
 	public RedisStackContainer(DockerImageName dockerImageName) {
