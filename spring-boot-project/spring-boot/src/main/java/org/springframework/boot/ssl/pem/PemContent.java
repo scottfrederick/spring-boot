@@ -54,9 +54,7 @@ public final class PemContent {
 	private final String text;
 
 	private PemContent(String text) {
-		this.text = Arrays.stream(StringUtils.tokenizeToStringArray(text, "\r\n"))
-			.map(String::trim)
-			.collect(Collectors.joining("\n"));
+		this.text = text.lines().map(String::trim).collect(Collectors.joining("\n"));
 	}
 
 	/**
