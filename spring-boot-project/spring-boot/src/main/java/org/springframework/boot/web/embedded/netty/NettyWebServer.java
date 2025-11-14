@@ -64,6 +64,8 @@ public class NettyWebServer implements WebServer {
 	 */
 	private static final int ERROR_NO_EACCES = -13;
 
+	private static final int ERROR_ADDR_IN_USE = -98;
+
 	private static final Predicate<HttpServerRequest> ALWAYS = (request) -> true;
 
 	private static final Log logger = LogFactory.getLog(NettyWebServer.class);
@@ -118,6 +120,11 @@ public class NettyWebServer implements WebServer {
 				PortInUseException.ifCausedBy(ex, ChannelBindException.class, (bindException) -> {
 					if (bindException.localPort() > 0 && !isPermissionDenied(bindException.getCause())) {
 						PortInUseException.throwIfPortBindingException(bindException, bindException::localPort);
+					}
+				});
+				PortInUseException.ifCausedBy(ex, NativeIoException.class, (nativeIoException) -> {
+					if (nativeIoException.expectedErr() == ERROR_ADDR_IN_USE) {
+						throw new PortInUseException(-1, ex);
 					}
 				});
 				throw new WebServerException("Unable to start Netty", ex);
